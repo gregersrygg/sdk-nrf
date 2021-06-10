@@ -545,11 +545,24 @@
 .. _`nRF Mesh mobile app for iOS`: https://apps.apple.com/us/app/nrf-mesh/id1380726771
 .. _`nRF Mesh mobile app for Android`: https://play.google.com/store/apps/details?id=no.nordicsemi.android.nrfmeshprovisioner
 
-.. _`nRF Cloud documentation`: https://nrfcloud.com/#/docs
+<<<<<<< HEAD
+.. _`nRF Cloud`:
+.. _`nRF Connect for Cloud`: https://nrfcloud.com/
+
+
+
+.. _`nRF Cloud documentation`:
+.. _`nRF Connect for Cloud documentation`: https://nrfcloud.com/#/docs
 
 .. _`nRF Cloud Patch Device State`: https://api.nrfcloud.com/v1#operation/UpdateDeviceState
 
+.. _`nRF Cloud Device API`:
+.. _`nRF Connect for Cloud Device API`: https://api.nrfcloud.com/v1
+=======
+.. _`nRF Cloud`: https://nrfcloud.com/
+
 .. _`nRF Cloud Device API`: https://api.nrfcloud.com/v1
+>>>>>>> 2c5158c04 (name change to nRF Cloud)
 
 .. _`nRF Cloud Location Services`: https://api.nrfcloud.com/v1#tag/Location-Services
 
