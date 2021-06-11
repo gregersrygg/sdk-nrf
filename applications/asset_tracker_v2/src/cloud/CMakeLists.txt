@@ -8,3 +8,6 @@ target_include_directories(app PRIVATE .)
 add_subdirectory(cloud_codec)
 target_sources_ifdef(CONFIG_AWS_IOT app
                      PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/aws_iot_integration.c)
+
+target_sources_ifdef(CONFIG_SPAN_IOT app 
+                     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/span_integration.c)

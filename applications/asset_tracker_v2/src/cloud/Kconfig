@@ -4,6 +4,31 @@
 # SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
 #
 
+menuconfig SPAN_IOT
+	bool "Lab5e Span IoT Gateway"
+	help
+		Connect to and send data through Span IoT Gateway. Currently only for
+		Telenor Norway IoT SIM-cards.
+
+if SPAN_IOT
+	config SPAN_IOT_THREAD_STACK_SIZE
+		int "Span receive thread stack size"
+		default 2560
+
+	config SPAN_IOT_RX_PORT
+		int "Port number to listen for UDP packets"
+		default 1234
+	
+	config SPAN_IOT_SERVER_IP
+		string "Span server IP"
+		default "172.16.15.14"
+	
+	config SPAN_IOT_SERVER_PORT
+		int "Span server port"
+		default 1234
+
+endif #
+
 module = CLOUD_INTEGRATION
 module-str = Cloud integration layer
 source "subsys/logging/Kconfig.template.log_config"
