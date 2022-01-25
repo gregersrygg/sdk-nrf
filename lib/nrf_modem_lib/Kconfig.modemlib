@@ -32,6 +32,11 @@ config NRF_MODEM_LIB_TRACE_ENABLED
 
 if NRF_MODEM_LIB_TRACE_ENABLED
 
+config NRF_MODEM_LIB_TRACE_THREAD_PRIO
+	int "Priority of the trace processing thread"
+	range 0 NUM_PREEMPT_PRIORITIES
+	default 5
+
 choice NRF_MODEM_LIB_TRACE_MEDIUM
 	prompt "nRF modem trace medium"
 	default NRF_MODEM_LIB_TRACE_MEDIUM_UART

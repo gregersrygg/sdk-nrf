@@ -110,7 +110,7 @@ manifest:
     - name: nrfxlib
       repo-path: sdk-nrfxlib
       path: nrfxlib
-      revision: cf7d0cd0e1b66c4c72144e0f131a071c9f563395
+      revision: 99186dae5d073c96ab19af5ac988f94710e2def0
       remote: gregersrygg
     - name: trusted-firmware-m
       repo-path: sdk-trusted-firmware-m
