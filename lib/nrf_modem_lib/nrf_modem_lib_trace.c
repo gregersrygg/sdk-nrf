@@ -60,7 +60,7 @@ void trace_handler_thread(void)
 		while (remaining_bytes) {
 			size_t transfer_len = MIN(remaining_bytes, MAX_BUF_LEN);
 			uint32_t idx = len - remaining_bytes;
-			
+
 			if (k_sem_take(&tx_sem, K_MSEC(100)) != 0) {
 				LOG_WRN("UARTE TX not available!");
 				break;
@@ -85,8 +85,11 @@ void trace_handler_thread(void)
 			SEGGER_RTT_WriteSkipNoLock(trace_rtt_channel, &data[idx], transfer_len);
 			remaining_bytes -= transfer_len;
 		}
-		__ASSERT(nrf_modem_trace_processed_callback(data, len) == 0,
-			"nrf_modem_trace_processed_callback failed");
+
+		int err = nrf_modem_trace_processed_callback(data, len);
+
+		__ASSERT(err == 0,
+			"nrf_modem_trace_processed_callback failed with error code %d", err);
 #endif
 
 		k_free(trace_data);
@@ -99,6 +102,8 @@ K_THREAD_DEFINE(trace_thread_id, TRACE_THREAD_STACK_SIZE, trace_handler_thread,
 #ifdef CONFIG_NRF_MODEM_LIB_TRACE_MEDIUM_UART
 static void uarte_callback(nrfx_uarte_event_t const *p_event, void *p_context)
 {
+	int err = 0;
+
 	if (k_sem_count_get(&tx_sem) != 0) {
 		LOG_ERR("uart semaphore not in use");
 		return;
@@ -108,15 +113,17 @@ static void uarte_callback(nrfx_uarte_event_t const *p_event, void *p_context)
 		LOG_ERR("uarte error 0x%04x", p_event->data.error.error_mask);
 
 		k_sem_give(&tx_sem);
-		nrf_modem_trace_processed_callback(p_event->data.error.rxtx.p_data,
-			p_event->data.error.rxtx.bytes);
+		err = nrf_modem_trace_processed_callback(p_event->data.error.rxtx.p_data,
+				p_event->data.error.rxtx.bytes);
 	}
 
 	if (p_event->type == NRFX_UARTE_EVT_TX_DONE) {
 		k_sem_give(&tx_sem);
-		nrf_modem_trace_processed_callback(p_event->data.rxtx.p_data,
-			p_event->data.rxtx.bytes);
+		err = nrf_modem_trace_processed_callback(p_event->data.rxtx.p_data,
+				p_event->data.rxtx.bytes);
 	}
+
+	__ASSERT(err == 0, "nrf_modem_trace_processed_callback failed with error code %d", err);
 }
 
 static bool uart_init(void)
@@ -135,7 +142,7 @@ static bool uart_init(void)
 		.interrupt_priority = irq_priority,
 		.p_context = NULL,
 	};
-	
+
 	IRQ_CONNECT(DT_IRQN(DT_NODELABEL(uart1)),
 		irq_priority,
 		nrfx_isr,
@@ -187,8 +194,10 @@ int nrf_modem_lib_trace_start(enum nrf_modem_lib_trace_mode trace_mode)
 int nrf_modem_lib_trace_process(const uint8_t *data, uint32_t len)
 {
 	if (!is_transport_initialized) {
-		__ASSERT(nrf_modem_trace_processed_callback(data, len) == 0,
-			"nrf_modem_trace_processed_callback failed");
+		int err = nrf_modem_trace_processed_callback(data, len);
+
+		__ASSERT(err == 0,
+			"nrf_modem_trace_processed_callback failed with error code %d", err);
 		return -ENXIO;
 	}
 
