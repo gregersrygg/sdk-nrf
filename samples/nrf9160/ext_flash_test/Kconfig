@@ -1,0 +1,13 @@
+#
+# Copyright (c) 2020 Nordic Semiconductor ASA
+#
+# SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+#
+
+module = EXT_FLASH_TEST
+module-str = Ext. flash test
+source "${ZEPHYR_BASE}/subsys/logging/Kconfig.template.log_config"
+
+menu "Zephyr Kernel"
+source "Kconfig.zephyr"
+endmenu
