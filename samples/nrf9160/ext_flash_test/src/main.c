@@ -25,12 +25,12 @@ static struct stream_flash_ctx stream;
 static uint8_t buf[BUF_LEN];
 const static uint8_t write_buf[TESTBUF_SIZE] = {[0 ... TESTBUF_SIZE - 1] = 0xaa};
 
-int write_data(void) {
-	NRF_P0_NS->DIRSET = (1 << 17) | (1 << 19);
-	NRF_P0_NS->OUTSET = (1 << 17);
-
+static int write_data(void)
+{
+	NRF_P0_NS->DIRSET = (1 << 17);
 	int64_t uptime_ref = k_uptime_get();
 
+	NRF_P0_NS->OUTSET = (1 << 17);
 	int err = stream_flash_buffered_write(&stream, write_buf, TESTBUF_SIZE, true);
 	if (err != 0) {
 		LOG_ERR("stream_flash_buffered_write error %d", err);
@@ -40,10 +40,37 @@ int write_data(void) {
 
 	uint64_t transfer_time = k_uptime_delta(&uptime_ref);
 
-	LOG_INF("Data sample first byte = %d second byte = %d", write_buf[0],
-		write_buf[sizeof(write_buf) - 1]);
-	LOG_INF("Transferred %d bytes in %lld ms", sizeof(write_buf), transfer_time);
+	LOG_INF("Written %d bytes in %lld ms", sizeof(write_buf), transfer_time);
 	LOG_INF("Throughput = %lld bps ", ((sizeof(write_buf) * 8 / transfer_time) * 1000));
+
+	return 0;
+}
+
+static int read_data(void)
+{
+	NRF_P0_NS->DIRSET = (1 << 19);
+
+	static uint8_t read_buf[TESTBUF_SIZE];
+	const uint32_t size_to_read = sizeof(read_buf);
+	const uint32_t read_offset = 0;
+
+	int64_t ticks_before_read = k_uptime_ticks();
+
+	NRF_P0_NS->OUTSET = (1 << 19);
+	int err = flash_read(flash_dev, read_offset, read_buf, size_to_read);
+
+	if (err != 0) {
+		LOG_ERR("flash_read error %d", err);
+		return err;
+	}
+	NRF_P0_NS->OUTCLR = (1 << 19);
+
+	int64_t ticks_after_read = k_uptime_ticks();
+	uint64_t time_taken_us = k_ticks_to_us_ceil64(ticks_after_read - ticks_before_read);
+
+
+	LOG_INF("Read %d bytes in %lld us", size_to_read, time_taken_us);
+	LOG_INF("Throughput = %lld bps ", ((size_to_read * 8 / time_taken_us) * 1000000));
 
 	return 0;
 }
@@ -66,5 +93,15 @@ void main(void)
 		LOG_ERR("stream_flash_init failed (err %d)", err);
 	}
 
-	write_data();
+	err = write_data();
+
+	if (err) {
+		LOG_ERR("write_data returns error = %d", err);
+	}
+
+	err = read_data();
+
+	if (err) {
+		LOG_ERR("read_data returns error = %d", err);
+	}
 }
