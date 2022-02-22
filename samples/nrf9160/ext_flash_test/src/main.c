@@ -26,11 +26,25 @@ static uint8_t buf[BUF_LEN];
 const static uint8_t write_buf[TESTBUF_SIZE] = {[0 ... TESTBUF_SIZE - 1] = 0xaa};
 
 int write_data(void) {
-	int err = stream_flash_buffered_write(&stream, write_buf, TESTBUF_SIZE, false);
+	NRF_P0_NS->DIRSET = (1 << 17) | (1 << 19);
+	NRF_P0_NS->OUTSET = (1 << 17);
+
+	int64_t uptime_ref = k_uptime_get();
+
+	int err = stream_flash_buffered_write(&stream, write_buf, TESTBUF_SIZE, true);
 	if (err != 0) {
 		LOG_ERR("stream_flash_buffered_write error %d", err);
 		return err;
 	}
+	NRF_P0_NS->OUTCLR = (1 << 17);
+
+	uint64_t transfer_time = k_uptime_delta(&uptime_ref);
+
+	LOG_INF("Data sample first byte = %d second byte = %d", write_buf[0],
+		write_buf[sizeof(write_buf) - 1]);
+	LOG_INF("Transferred %d bytes in %lld ms", sizeof(write_buf), transfer_time);
+	LOG_INF("Throughput = %lld bps ", ((sizeof(write_buf) * 8 / transfer_time) * 1000));
+
 	return 0;
 }
 
