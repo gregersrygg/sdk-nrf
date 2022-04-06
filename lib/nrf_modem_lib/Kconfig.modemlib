@@ -93,6 +93,7 @@ comment "Heap and buffers"
 
 config NRF_MODEM_LIB_HEAP_SIZE
 	int "Library heap size"
+	default 2048 if NRF_MODEM_LIB_TRACE_ENABLED
 	default 1024
 	range 512 4096
 	help
