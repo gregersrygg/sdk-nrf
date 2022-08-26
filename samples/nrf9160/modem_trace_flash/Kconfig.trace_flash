@@ -1,0 +1,23 @@
+#
+# Copyright (c) 2022 Nordic Semiconductor
+#
+# SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+#
+
+module = MODEM_TRACE_FLASH_BACKEND
+module-str = Modem trace flash backend
+source "${ZEPHYR_BASE}/subsys/logging/Kconfig.template.log_config"
+
+if NRF_MODEM_LIB_TRACE
+
+# Adds NRF_MODEM_LIB_TRACE_BACKEND_CUSTOM to the trace backend choice.
+choice NRF_MODEM_LIB_TRACE_BACKEND
+
+config NRF_MODEM_LIB_TRACE_BACKEND_FLASH
+	bool "Stream modem traces to flash"
+	help
+	  Stream modem trace data to flash.
+
+endchoice # NRF_MODEM_LIB_TRACE_BACKEND
+
+endif # NRF_MODEM_LIB_TRACE_ENABLED

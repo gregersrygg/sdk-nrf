@@ -209,5 +209,5 @@ int nrf_modem_lib_shutdown(void)
 
 #if defined(CONFIG_NRF_MODEM_LIB_SYS_INIT)
 /* Initialize during SYS_INIT */
-SYS_INIT(_nrf_modem_lib_init, POST_KERNEL, 0);
+SYS_INIT(_nrf_modem_lib_init, POST_KERNEL, 99);
 #endif
