@@ -29,6 +29,11 @@
 	};
 };
 
+/* TODO: REMOVE THIS - ONLY FOR PIN TRACING WITH CUT SB23 */
+&spi3 {
+	cs-gpios = <&arduino_header 16 GPIO_ACTIVE_LOW>, /* D10 */
+		   <&gpio0 16 GPIO_ACTIVE_LOW>;
+};
 
 &mx25r64 {
 	partitions {

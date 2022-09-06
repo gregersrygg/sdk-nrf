@@ -26,7 +26,7 @@ K_SEM_DEFINE(trace_done_sem, 1, 1);
 #define TRACE_THREAD_STACK_SIZE 768
 #else
 /* Need more stack when optimizations are disabled */
-#define TRACE_THREAD_STACK_SIZE 1024
+#define TRACE_THREAD_STACK_SIZE 2048
 #endif
 
 #define TRACE_THREAD_PRIORITY                                                                      \

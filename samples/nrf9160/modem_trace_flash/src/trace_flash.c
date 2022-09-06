@@ -75,10 +75,10 @@ int littlefs_init(void)
 	LOG_INF("Flash trace backend init");
 
 	// TODO Kconfig for erasing flash or not
-	/*err = littlefs_erase((uintptr_t) littlefs_mnt.storage_dev);
+	err = littlefs_erase((uintptr_t) littlefs_mnt.storage_dev);
 	if (err) {
 		return err;
-	}*/
+	}
 
 	err = fs_mount(&littlefs_mnt);
 	if (err) {
@@ -176,6 +176,9 @@ int littlefs_deinit(void)
 int littlefs_write(const void *data, size_t len)
 {
 	tot_bytes_rcvd += len;
+
+
+
 	return fs_write(&file, data, len);
 }
 
