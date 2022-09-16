@@ -31,8 +31,14 @@ int littlefs_init(void);
 int littlefs_deinit(void);
 int littlefs_write(const void *data, size_t len);
 
+static trace_backend_processed_cb trace_processed_callback;
 int trace_backend_init(trace_backend_processed_cb trace_processed_cb)
 {
+	if (trace_processed_cb == NULL) {
+		return -EFAULT;
+	}
+
+	trace_processed_callback = trace_processed_cb;
 	return littlefs_init();
 }
 
@@ -75,10 +81,10 @@ int littlefs_init(void)
 	LOG_INF("Flash trace backend init");
 
 	// TODO Kconfig for erasing flash or not
-	err = littlefs_erase((uintptr_t) littlefs_mnt.storage_dev);
-	if (err) {
-		return err;
-	}
+	// err = littlefs_erase((uintptr_t) littlefs_mnt.storage_dev);
+	// if (err) {
+	//     return err;
+	// }
 
 	err = fs_mount(&littlefs_mnt);
 	if (err) {
@@ -175,11 +181,28 @@ int littlefs_deinit(void)
 
 int littlefs_write(const void *data, size_t len)
 {
+	ssize_t ret;
 	tot_bytes_rcvd += len;
 
+	ret = fs_write(&file, data, len);
+	if (ret < 0) {
+		LOG_ERR("fs_write error: %d", (int) ret);
+	} else if (ret < len) {
+		LOG_ERR("fs_write errno: %d (full flash?)", errno);
+		ret = errno;
+	}
 
+	int err = trace_processed_callback(len);
 
-	return fs_write(&file, data, len);
+	if (err) {
+		LOG_ERR("trace_processed_callback error: %d", err);
+		return err;
+	}
+
+	return ret;
+
+	// trace_processed_callback(len);
+	// return len;
 }
 
 	// char fname1[MAX_PATH_LEN];
