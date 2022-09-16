@@ -35,6 +35,13 @@
 		   <&gpio0 16 GPIO_ACTIVE_LOW>;
 };
 
+/* Increase SPI3 drive strenght */
+&spi3_default {
+	group1 {
+		nordic,drive-mode = <NRF_DRIVE_H0H1>;
+	};
+};
+
 &mx25r64 {
 	partitions {
 		compatible = "fixed-partitions";
