@@ -86,6 +86,7 @@ The module is implemented in :file:`nrf/lib/nrf_modem_lib/nrf_modem_lib_trace.c`
 
 * :kconfig:option:`CONFIG_NRF_MODEM_LIB_TRACE_BACKEND_UART` to send modem traces over UARTE1
 * :kconfig:option:`CONFIG_NRF_MODEM_LIB_TRACE_BACKEND_RTT` to send modem traces over SEGGER RTT
+* :kconfig:option:`CONFIG_NRF_MODEM_LIB_TRACE_BACKEND_FLASH` to write modem traces to external flash
 
 To reduce the amount of trace data sent from the modem, a different trace level can be selected.
 Complete the following steps to configure the modem trace level at compile time:
@@ -102,8 +103,16 @@ Complete the following steps to configure the modem trace level at compile time:
 The application can use the :c:func:`nrf_modem_lib_trace_level_set` function to set the desired trace level.
 Passing ``NRF_MODEM_LIB_TRACE_LEVEL_OFF`` to the :c:func:`nrf_modem_lib_trace_level_set` function disables trace output.
 
+.. note::
+   If the modem is shut down gracefully before the next boot (by using ``AT+CFUN=0``), it stores the current trace level.
+   If the trace level stored in the modem is ``NRF_MODEM_LIB_TRACE_LEVEL_OFF``, to receive ned traces the application must enable traces in the modem using the :c:func:`nrf_modem_lib_trace_level_set` function or by enabling any of the Kconfig options mentioned in step 2.
+
 During tracing, the integration layer ensures that modem traces are always flushed before the Modem library is re-initialized (including when the modem has crashed).
 The application can synchronize with the flushing of modem traces by calling the :c:func:`nrf_modem_lib_trace_processing_done_wait` function.
+
+For trace backends that support storing of trace data, the application can be notified via the :c:func:`nrf_modem_lib_trace_callback` if the trace storage becomes full.
+In this case, the application is responsible for reading the trace data with :c:func:`nrf_modem_lib_trace_read` if required, before clearing the trace backend storage by calling :c:func:`nrf_modem_lib_trace_clear`.
+It is not necessary to turn off modem tracing in this case. However, it is expected that the modem will drop traces when the backend becomes full.
 
 To enable the measurement of the modem trace backend bitrate, enable the :kconfig:option:`CONFIG_NRF_MODEM_LIB_TRACE_BACKEND_BITRATE` Kconfig in your project configuration.
 After enabling this Kconfig option, the application can use the :c:func:`nrf_modem_lib_trace_backend_bitrate_get` function to retrieve the rolling average bitrate of the modem trace backend, measured over the period defined by the :kconfig:option:`CONFIG_NRF_MODEM_LIB_TRACE_BACKEND_BITRATE_PERIOD_MS` Kconfig option.
@@ -132,28 +141,64 @@ Complete the following steps to add a custom trace backend:
 
    .. code-block:: c
 
-      /* my_trace_medium.c */
+      /* my_trace_backend.c */
 
-      #include <modem/trace_medium.h>
+      #include <modem/trace_backend.h>
 
-      int trace_medium_init(void)
+      int trace_backend_init(void)
       {
-           /* initialize transport medium here */
+           /* initialize transport backend here */
            return 0;
       }
 
-      int trace_medium_deinit(void)
+      int trace_backend_deinit(void)
       {
            /* optional deinitialization code here */
            return 0;
       }
 
-      int trace_medium_write(const void *data, size_t len)
+      int trace_backend_write(const void *data, size_t len)
       {
-           /* forward data over custom transport here */
-           /* return number of bytes written or negative error code on failure */
+           /* forward or store trace data here */
+           /* return the number of bytes written or stored, or a negative error code on failure */
            return 0;
       }
+
+      size_t trace_backend_data_size(void)
+      {
+         /* If trace data is stored when calling trace_backend_write
+          * this function returns the size of the stored trace data.
+          *
+          * If not applicable for the trace backend, set to NULL in the trace_backend struct.
+          */
+      }
+
+      int trace_backend_read(uint8_t *buf, size_t len)
+      {
+         /* If trace data is stored when calling trace_backend_write
+          * this function allows the application to read back the trace data.
+          *
+          * If not applicable for the trace backend, set to NULL in the trace_backend struct.
+          */
+      }
+
+      int trace_backend_clear(void)
+      {
+         /* This function allows the backend to clear all stored traces in the backend. For instance
+          * this can be erasing a flash partition to prepare for writing new data.
+          *
+          * If not applicable for the trace backend, set to NULL in the trace_backend struct.
+          */
+      }
+
+      struct nrf_modem_lib_trace_backend trace_backend = {
+         .init = trace_backend_init,
+         .deinit = trace_backend_deinit,
+         .write = trace_backend_write,
+         .data_size = trace_backend_data_size, /* Set to NULL if not applicable. */
+         .read = trace_backend_read, /* Set to NULL if not applicable. */
+         .clear = trace_backend_clear, /* Set to NULL if not applicable. */
+      };
 
 #. Create or modify a :file:`Kconfig` file to extend the choice :kconfig:option:`NRF_MODEM_LIB_TRACE_BACKEND` with another option.
 

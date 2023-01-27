@@ -32,6 +32,31 @@ enum nrf_modem_lib_trace_level {
 	NRF_MODEM_LIB_TRACE_LEVEL_LTE_AND_IP = 5,	/**< LTE and IP. */
 };
 
+/** @brief Trace event */
+enum nrf_modem_lib_trace_event {
+	NRF_MODEM_LIB_TRACE_EVT_FULL = -ENOSPC,        /**< Trace storage is full. */
+};
+
+
+/** @brief Trace callback that is called by the trace library when an event occour.
+ *
+ * @param evt Occurring event
+ *
+ * @return Zero on success, non-zero otherwise.
+ */
+typedef void (*nrf_modem_lib_trace_callback_t)(enum nrf_modem_lib_trace_event evt);
+
+/** @brief Set the trace callback
+ *
+ * @note The default callback @c nrf_modem_lib_trace_callback has a __weak implementation that can
+ *       be overwritten by the application instead of setting the trace callback with
+ *       @c nrf_modem_lib_trace_callback_set. This is beneficial for applications using the
+ *       `NRF_MODEM_LIB_SYS_INIT` Kconfig option.
+ *
+ * @param callback Callback to set or @c NULL to reset.
+ */
+void nrf_modem_lib_trace_callback_set(nrf_modem_lib_trace_callback_t callback);
+
 /** @brief Wait for trace to have finished processing after coredump or shutdown.
  *
  * This function blocks until the trace module has finished processing data after
@@ -50,6 +75,42 @@ int nrf_modem_lib_trace_processing_done_wait(k_timeout_t timeout);
  * @return Zero on success, non-zero otherwise.
  */
 int nrf_modem_lib_trace_level_set(enum nrf_modem_lib_trace_level trace_level);
+
+/**
+ * @brief Get the number of bytes stored in the compile-time selected trace backend.
+ *
+ * @note To ensure the retrieved number is correct, this function should only be called
+ *       when the backend is done processing traces.
+ *
+ * @returns Number of bytes stored in the trace backend.
+ */
+size_t nrf_modem_lib_trace_data_size(void);
+
+/**
+ * @brief Read trace data
+ *
+ * Read out the trace data. After read, the backend can choose to free the
+ * space and prepare it for further write operations.
+ *
+ * @note This operation is only supported with some trace backends.
+ *
+ * @param buf Output buffer
+ * @param len Size of output buffer
+ *
+ * @return read number of bytes, negative errno on failure.
+ */
+int nrf_modem_lib_trace_read(uint8_t *buf, size_t len);
+
+/**
+ * @brief Clear captured trace data
+ *
+ * Clear all captured trace data and prepare for capturing new traces.
+ *
+ * @note This operation is only supported with some trace backends.
+ *
+ * @return 0 on success, negative errno on failure.
+ */
+int nrf_modem_lib_trace_clear(void);
 
 #if defined(CONFIG_NRF_MODEM_LIB_TRACE_BACKEND_BITRATE) || defined(__DOXYGEN__)
 /** @brief Get the last measured rolling average bitrate of the trace backend.
