@@ -1,0 +1,22 @@
+#include <autoconf.h>
+
+mcuboot_secondary:
+  region: external_flash
+  device: DT_CHOSEN(nordic_pm_ext_flash)
+  placement:
+    after:
+    - start
+  address: 0x0
+  size: 0x200000
+
+# external_flash_unused:
+#   address: 0x100000
+#   region: external_flash
+#   size: 0x600000
+
+#0
+#0x100000
+#0x800000
+
+#0x100000
+#0x800000
