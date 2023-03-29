@@ -3,11 +3,48 @@
 mcuboot_secondary:
   region: external_flash
   device: DT_CHOSEN(nordic_pm_ext_flash)
-  placement:
-    after:
-    - start
   address: 0x0
-  size: 0x200000
+  size: 0x100000
+
+settings_storage:
+  region: external_flash
+  device: DT_CHOSEN(nordic_pm_ext_flash)
+  address: 0x100000
+  size: 0x2000
+
+external_flash:
+  region: external_flash
+  device: DT_CHOSEN(nordic_pm_ext_flash)
+  address: 0x102000
+  size: 0x6fe000
+
+# external_flash:
+#   region: external_flash
+#   device: DT_CHOSEN(nordic_pm_ext_flash)
+#   address: 0x100000
+#   size: 0x700000
+
+# 0x0: mcuboot_secondary (0xf0000 - 960kB)
+
+# settings_storage:
+#   region: external_flash
+#   device: DT_CHOSEN(nordic_pm_ext_flash)
+#   address: 0x200000
+#   size: 0x2000
+
+# littlefs_storage:
+#   region: external_flash
+#   device: DT_CHOSEN(nordic_pm_ext_flash)
+#   address: 0xf2000
+#   size: 0x800000
+
+# external_flash:
+#   region: external_flash
+#   device: DT_CHOSEN(nordic_pm_ext_flash)
+#   address: 0x8f2000
+#   size: 0x70e000
+
+
 
 # external_flash_unused:
 #   address: 0x100000
