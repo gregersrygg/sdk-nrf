@@ -61,6 +61,12 @@ static void security_changed(struct bt_conn *conn, bt_security_t level,
 	if (level >= BT_SECURITY_L2) {
 		if (!mds_conn) {
 			mds_conn = conn;
+
+			/* Capture a heartbeat now so the device (with its software/
+			 * hardware version and serial) shows up in Memfault shortly
+			 * after connecting, without waiting for the periodic timer.
+			 */
+			memfault_metrics_heartbeat_debug_trigger();
 		}
 	}
 }
