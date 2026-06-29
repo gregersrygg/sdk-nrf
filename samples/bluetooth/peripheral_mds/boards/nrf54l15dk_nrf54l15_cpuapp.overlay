@@ -1,0 +1,21 @@
+/*
+ * Copyright (c) 2026 Nordic Semiconductor ASA
+ *
+ * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+ */
+
+/*
+ * The nRF54L15 SoC-default MCUboot partition is 64 KiB, but the FPROTECT
+ * hardware on this device can protect at most a single 62 KiB region. With
+ * static (devicetree) partitions and MCUboot enabled, that 64 KiB partition
+ * makes MCUboot fail to build: "Can not FPROTECT region that big".
+ *
+ * Shrink the MCUboot partition to 60 KiB (FPROTECT block unit is 1 KiB, so
+ * this is valid and below the 62 KiB cap). slot0/slot1/storage are left at
+ * their defaults; a 4 KiB gap is left between mcuboot and image-0. This
+ * overlay must match the one applied to the MCUboot image under
+ * sysbuild/mcuboot/boards/.
+ */
+&boot_partition {
+	reg = <0x0 DT_SIZE_K(60)>;
+};
