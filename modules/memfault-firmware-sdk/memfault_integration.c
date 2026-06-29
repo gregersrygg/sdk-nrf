@@ -45,6 +45,54 @@ LOG_MODULE_REGISTER(memfault_ncs, CONFIG_MEMFAULT_NCS_LOG_LEVEL);
 
 extern void memfault_ncs_metrics_init(void);
 
+#if defined(CONFIG_BT_MDS) && !defined(CONFIG_MEMFAULT_HTTP_ENABLE)
+sMfltHttpClientConfig g_mflt_http_client_config = {
+	.api_key = CONFIG_MEMFAULT_NCS_PROJECT_KEY,
+};
+#endif
+
+#if defined(CONFIG_MEMFAULT_PROJECT_KEY_SETTINGS)
+/* Memfault project keys are 32 characters; keep room for a NUL terminator. */
+#define MEMFAULT_PROJECT_KEY_MAX_LEN 32
+static char s_project_key[MEMFAULT_PROJECT_KEY_MAX_LEN + 1];
+
+/* Settings handler for the "memfault" subtree. When settings are loaded (e.g.
+ * at boot via settings_load_subtree("memfault")) this copies the stored
+ * "memfault/project_key" value into s_project_key and points the Memfault HTTP
+ * client config at it, overriding the compile-time CONFIG_MEMFAULT_NCS_PROJECT_KEY.
+ */
+static int memfault_settings_set(const char *name, size_t len,
+				 settings_read_cb read_cb, void *cb_arg)
+{
+	const char *next;
+
+	if (settings_name_steq(name, "project_key", &next) && !next) {
+		if (len > sizeof(s_project_key) - 1) {
+			LOG_ERR("Memfault project key too long (%u > %u)", (unsigned int)len,
+				(unsigned int)(sizeof(s_project_key) - 1));
+			return -EINVAL;
+		}
+
+		ssize_t rc = read_cb(cb_arg, s_project_key, len);
+
+		if (rc < 0) {
+			LOG_ERR("Failed to read Memfault project key, error: %d", (int)rc);
+			return rc;
+		}
+
+		s_project_key[rc] = '\0';
+		g_mflt_http_client_config.api_key = s_project_key;
+		LOG_INF("Memfault project key loaded from settings (%d bytes)", (int)rc);
+
+		return 0;
+	}
+
+	return -ENOENT;
+}
+
+SETTINGS_STATIC_HANDLER_DEFINE(memfault, "memfault", NULL, memfault_settings_set, NULL, NULL);
+#endif /* CONFIG_MEMFAULT_PROJECT_KEY_SETTINGS */
+
 #if defined(CONFIG_MEMFAULT_NCS_DEVICE_INFO_BUILTIN)
 /* Firmware type check */
 BUILD_ASSERT(sizeof(CONFIG_MEMFAULT_NCS_FW_TYPE) > 1, "Firmware type must be configured");

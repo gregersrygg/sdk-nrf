@@ -13,6 +13,24 @@ config MEMFAULT_NCS_PROJECT_KEY
 	  To load the project key at runtime from the Zephyr settings subsystem,
 	  enable CONFIG_MEMFAULT_PROJECT_KEY_SETTINGS.
 
+config MEMFAULT_PROJECT_KEY_SETTINGS
+	bool "Load the Memfault project key at runtime from settings"
+	select SETTINGS
+	help
+	  Load the Memfault project key from the Zephyr settings subsystem at
+	  boot (settings key "memfault/project_key") instead of relying solely
+	  on the compile-time CONFIG_MEMFAULT_NCS_PROJECT_KEY. When a stored key
+	  is present it overrides the compile-time value; otherwise the
+	  compile-time value (which may be empty) is kept as a fallback.
+
+	  The key can be provisioned at runtime, e.g. over the settings shell
+	  (CONFIG_SETTINGS_SHELL):
+	    settings write string memfault/project_key <your-32-char-key>
+	  The stored key is applied when settings are loaded (i.e. on the next
+	  boot), so reboot after writing it. This requires a transport that
+	  consumes g_mflt_http_client_config.api_key (CONFIG_BT_MDS or
+	  CONFIG_MEMFAULT_HTTP_ENABLE).
+
 choice
 	prompt "Choose built-in Memfault Device Info or custom implementation"
 	default MEMFAULT_NCS_DEVICE_INFO_BUILTIN
