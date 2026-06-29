@@ -53,6 +53,10 @@ LOG_MODULE_REGISTER(mds, CONFIG_BT_MDS_LOG_LEVEL);
 #define MDS_URI_BASE \
 	MEMFAULT_HTTP_APIS_DEFAULT_SCHEME "://" MEMFAULT_HTTP_CHUNKS_API_HOST "/api/v0/chunks/"
 
+#ifndef MEMFAULT_PROJECT_KEY_LEN
+#define MEMFAULT_PROJECT_KEY_LEN 32
+#endif
+
 #define DATA_POLL_INTERVAL CONFIG_BT_MDS_DATA_POLL_INTERVAL
 
 /* Memfault chunk number maximum value. Chunk number should overlaps after reaching this value. */
